@@ -1,16 +1,20 @@
-Attribute VB_Name = "Module1"
+Attribute VB_Name = "tickeranalysis"
 Sub ticker()
 
+Application.ScreenUpdating = False
+Application.Calculation = False
+
 'declare variables
-'Dim sht As Worksheets
-'Dim r As Integer 'row iterator
-'Dim c As Integer 'column iterator ---- check if needed
+Dim sht As Worksheet
+
 
 'variables for summary range(s)
 Dim tckrsum As Range
 Dim yrlychg As Range
 Dim perchg As Range
 Dim totvol As Range
+
+'variables for bonus range(s)
 Dim tckrinc As Range
 Dim tckrdec As Range
 Dim toptotvol As Range
@@ -18,24 +22,38 @@ Dim toptotvol As Range
 'variables for data processing
 Dim ticker As Range
 Dim nxticker As Range
+Dim prvticker As Range
+Dim volume As Range
 Dim openprc As Double
 Dim clseprc As Double
 Dim chgprc As Double
-Dim volit As Long
-Dim volume As Range
-Dim thisdt As Range
-Dim nxtdt As Range
-Dim minyear As String
-Dim maxyear As String
+Dim chgper As Double
+Dim volit As Double
+
 
 'start looking at sheets
-For Each sht In Worksheets
-'    Set sht =
+For s = 1 To Worksheets.Count
+    Set sht = Sheets(s)
+    sht.Activate
+    
+    'clear summary range contents
+    slr = sht.Cells(Rows.Count, 9).End(xlUp).Row
+    sht.Range("I1:Q" & slr).Delete
     
     'find last row and last column of sheet
-    lr = sht.Cells(Rows.Count, "b").End(xlUp).Row
+    lr = sht.Cells(Rows.Count, 1).End(xlUp).Row
     lc = sht.Cells(1, sht.Columns.Count).End(xlToLeft).Column
+      
+    sc = lc + 2
+    sr = 1
     
+    'set summary headers
+    sht.Range(Cells(sr, sc), Cells(sr, sc)) = "Ticker"
+    sht.Range(Cells(sr, sc + 1), Cells(sr, sc + 1)) = "Yearly Change"
+    sht.Range(Cells(sr, sc + 2), Cells(sr, sc + 2)) = "Percent Change"
+    sht.Range(Cells(sr, sc + 3), Cells(sr, sc + 3)) = "Total Stock Volume"
+
+        
     'make sure the sheet is sorted
     With sht.Sort
         .SortFields.Clear
@@ -54,45 +72,70 @@ For Each sht In Worksheets
         'set ranges for values that need to be checked
         Set ticker = sht.Range("A" & r)
         Set nxticker = sht.Range("A" & nr)
+        Set prvticker = sht.Range("A" & pr)
         Set volume = sht.Range("G" & r)
-        Set thisdt = sht.Range("B" & r)
-        Set nxtdt = sht.Range("B" & nr)
-                
-        'get minyear
-        If r = 2 Then
-'            Debug.Print thisdt.Value
-'            Debug.Print CStr(thisdt.Value)
-'            Debug.Print "#" & Left(Right(CStr(thisdt.Value), 4), 2) & "/" & Right(CStr(thisdt.Value), 2) & "/" & Left(CStr(thisdt.Value), 4) & "#"
-            
-            minyear = Left(CStr(thisdt.Value), 4)
-            Debug.Print minyear
-            openprc = sht.Range("C" & r).Value
-        End If
         
-        'check year of date
-        If Left(CStr(thisdt.Value), 4) <> minyear Then
-            GoTo YearError
+        'check ticker for start/end and get open/close price and add volume
+        If ticker.Value <> prvticker.Value Then
+            openprc = sht.Range("F" & r).Value
+            'add volume
+            volit = volit + volume.Value
+        ElseIf ticker.Value <> nxticker.Value Then
+            clseprc = sht.Range("f" & r).Value
+            'add volume
+            volit = volit + volume.Value
+            'calculate yearly change
+            chgprc = clseprc - openprc
+            'calculate percent change
+            If openprc = 0 Then
+                chgper = 0
+            Else
+                chgper = chgprc / openprc
+            End If
             
-        
-        'check ticker
-        If ticker.Value <> nxticker.Value Then
-           clseprc = sht.Range("f" & r).Value
+            'prepare ranges for summary
+            sr = sr + 1
+           
+            Set tckrsum = sht.Range(Cells(sr, sc), Cells(sr, sc))
+            Set yrlychg = sht.Range(Cells(sr, sc + 1), Cells(sr, sc + 1))
+            Set perchg = sht.Range(Cells(sr, sc + 2), Cells(sr, sc + 2))
+            Set totvol = sht.Range(Cells(sr, sc + 3), Cells(sr, sc + 3))
+                       
+            'print summary data and format cells
+            tckrsum = ticker.Value
+            yrlychg = chgprc
+            If yrlychg.Value < 0 Then
+                yrlychg.Interior.ColorIndex = 3
+            Else
+                yrlychg.Interior.ColorIndex = 4
+            End If
+            perchg = chgper
+            perchg.NumberFormat = "0.00%"
+            totvol = volit
+            totvol.NumberFormat = "0"
+            
+            '**********-----------------------bonus ranges -------------------------*********
+            
+            '**********-----------------------bonus ranges -------------------------*********
+            
+            'autofit summary range columns to contents
+            slr = sht.Cells(Rows.Count, 9).End(xlUp).Row
+            sht.Range("I1:Q" & slr).Columns.AutoFit
+                        
         Else
             'add volume
             volit = volit + volume.Value
         End If
-            
-FindCloseDate:
-    
+       
+
     Next r
     
-PrintSummary:
+Next s
 
-Next
+MsgBox ("Completed")
 
-YearError:
-
-MsgBox ("There is more than one year in the sheet. Sub Finished")
-
+Application.ScreenUpdating = True
+Application.Calculation = True
 
 End Sub
+
