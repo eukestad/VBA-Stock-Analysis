@@ -75,7 +75,7 @@ For s = 1 To Worksheets.Count
         If sc - (lc + 2) + 1 = 1 Then
             colhead = "Ticker"
         ElseIf sc - (lc + 2) + 1 = 2 Then
-            colhead = "Yearly Change"
+            colhead = "Yearly Change ($)"
         ElseIf sc - (lc + 2) + 1 = 3 Then
             colhead = "Percent Change"
         ElseIf sc - (lc + 2) + 1 = 4 Then
@@ -86,10 +86,10 @@ For s = 1 To Worksheets.Count
     
     sc = (lc + 2)
     
-    sht.Range("I1") = "Ticker"
-    sht.Range("J1") = "Yearly Change"
-    sht.Range("K1") = "Percent Change"
-    sht.Range("L1") = "Total Stock Volume"
+'    sht.Range("I1") = "Ticker"
+'    sht.Range("J1") = "Yearly Change"
+'    sht.Range("K1") = "Percent Change"
+'    sht.Range("L1") = "Total Stock Volume"
     
     'set bonus ranges
     sht.Range("N2") = "Greatest % Increase"
