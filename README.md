@@ -1,4 +1,4 @@
-# VBA-challenge - Multiple Year Stock Data Analysis
+# VBA Multiple Year Stock Data Analysis
 
 ## Files in the Repository
 The Repository contains the [vba script](./vba-challenge.bas) and two folders:
